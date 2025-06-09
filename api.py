@@ -72,13 +72,24 @@ def generate_visualizations():
         print(f"Script output: {stdout.decode('utf-8')}")
         
         # Check if the files were created
-        if not (os.path.exists(human_factors_file) and os.path.exists(contributing_factors_file)):
+        human_exists = os.path.exists(human_factors_file)
+        contributing_exists = os.path.exists(contributing_factors_file)
+        
+        print(f"Human factors file exists: {human_exists} ({human_factors_file})")
+        print(f"Contributing factors file exists: {contributing_exists} ({contributing_factors_file})")
+        
+        if not (human_exists and contributing_exists):
+            # List current directory files for debugging
+            current_files = os.listdir('.')
+            png_files = [f for f in current_files if f.endswith('.png')]
+            print(f"Available PNG files: {png_files}")
             return jsonify({'error': 'Failed to generate visualization files'}), 500
         
-        # Return the paths to the generated files
+        # Return the URLs to the generated files (served by this API)
+        api_base_url = request.host_url.rstrip('/')
         return jsonify({
-            'humanFactorsImage': human_factors_file,
-            'contributingFactorsImage': contributing_factors_file
+            'humanFactorsImage': f"{api_base_url}/api/files/{human_factors_file}",
+            'contributingFactorsImage': f"{api_base_url}/api/files/{contributing_factors_file}"
         })
     
     except Exception as e:
@@ -87,10 +98,21 @@ def generate_visualizations():
 
 @app.route('/api/files/<filename>', methods=['GET'])
 def get_file(filename):
-    # Validate the filename
+    print(f"File request for: {filename}")
+    
+    # Validate the filename for security
+    if '..' in filename or '/' in filename:
+        return jsonify({'error': 'Invalid filename'}), 400
+    
+    # Check if file exists
     if not os.path.exists(filename):
+        print(f"File not found: {filename}")
+        # List available files for debugging
+        png_files = [f for f in os.listdir('.') if f.endswith('.png')]
+        print(f"Available PNG files: {png_files}")
         return jsonify({'error': 'File not found'}), 404
     
+    print(f"Serving file: {filename}")
     # Return the file
     return send_file(filename, mimetype='image/png')
 
