@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 const pythonApiUrl = process.env.PYTHON_API_URL || 'http://localhost:5000';
+console.log(`🔗 Python API URL: ${pythonApiUrl}`);
 let pythonApiProcess = null;
 
 // Serve static files
@@ -255,23 +256,34 @@ app.get('/', (req, res) => {
 
 // Start the server
 const startServer = async () => {
-    try {
-        // Start the Python API server
-        await startPythonApi();
-        
-        // Start the Express server
-        app.listen(port, () => {
-            console.log(`Server running at http://localhost:${port}`);
-            console.log('You can access the health check at http://localhost:3000/api/health');
-        });
-    } catch (error) {
-        console.error('Failed to start servers:', error);
-        console.error('Starting Express server anyway to show error information...');
+    // In production, don't start Python API locally - use external service
+    if (process.env.NODE_ENV === 'production') {
+        console.log('🌐 Production mode: Using external Python API service');
+        console.log(`🔗 Python API URL: ${pythonApiUrl}`);
         
         app.listen(port, () => {
-            console.log(`Server running at http://localhost:${port} (without Python API)`);
-            console.log('You can still access the health check at http://localhost:3000/api/health');
+            console.log(`✅ Frontend server running at http://localhost:${port}`);
+            console.log(`🔗 Connecting to Python API at: ${pythonApiUrl}`);
         });
+    } else {
+        // Development mode - start local Python API
+        try {
+            console.log('🐍 Development mode: Starting local Python API...');
+            await startPythonApi();
+            
+            app.listen(port, () => {
+                console.log(`✅ Development server running at http://localhost:${port}`);
+                console.log('🔗 Local Python API should be running');
+            });
+        } catch (error) {
+            console.error('Failed to start local Python API:', error);
+            console.error('Starting Express server anyway...');
+            
+            app.listen(port, () => {
+                console.log(`⚠️  Server running at http://localhost:${port} (without Python API)`);
+                console.log('You can still access the health check at /api/health');
+            });
+        }
     }
 };
 

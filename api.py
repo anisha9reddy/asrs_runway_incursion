@@ -1,10 +1,21 @@
 from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 import os
 import subprocess
 import time
 import json
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
+# Health check endpoint
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'ok',
+        'service': 'asrs-python-api',
+        'timestamp': time.time()
+    })
 
 @app.route('/api/generate', methods=['POST'])
 def generate_visualizations():
@@ -84,4 +95,6 @@ def get_file(filename):
     return send_file(filename, mimetype='image/png')
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True) 
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    app.run(host='0.0.0.0', port=port, debug=debug) 

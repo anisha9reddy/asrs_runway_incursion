@@ -1,6 +1,7 @@
 services:
+  # Frontend - Node.js service
   - type: web
-    name: asrs-dashboard
+    name: asrs-frontend
     env: node
     plan: free
     buildCommand: npm install
@@ -11,5 +12,19 @@ services:
       - key: PORT
         value: 10000
       - key: PYTHON_API_URL
-        value: http://localhost:5000
-    healthCheckPath: / 
+        value: https://asrs-api.onrender.com
+    healthCheckPath: /
+
+  # Backend API - Python service  
+  - type: web
+    name: asrs-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python api.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 5000
+    healthCheckPath: /api/health 
