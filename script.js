@@ -439,6 +439,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Handle generate button click
     generateBtn.addEventListener('click', () => {
+        // Prevent multiple simultaneous requests
+        if (!loadingIndicator.classList.contains('hidden')) {
+            console.log('Request already in progress...');
+            return;
+        }
+        
         // Get selected date range
         const startMonth = startMonthSelect.value;
         const startYear = startYearSelect.value;
@@ -460,8 +466,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        // Show loading indicator
+        // Clear any existing visualizations and show loading message
+        const humanFactorsContainer = document.getElementById('human-factors-viz');
+        const contributingFactorsContainer = document.getElementById('contributing-factors-viz');
+        if (humanFactorsContainer) {
+            humanFactorsContainer.innerHTML = '<div class="loading-message">🔄 Generating Human Factors visualization...</div>';
+        }
+        if (contributingFactorsContainer) {
+            contributingFactorsContainer.innerHTML = '<div class="loading-message">🔄 Generating Contributing Factors visualization...</div>';
+        }
+        
+        // Show loading indicator (ensure it's visible)
         loadingIndicator.classList.remove('hidden');
+        console.log('🔄 Loading indicator shown');
         
         // Show visualizations page first with placeholders
         showPage('visualizations-page');
@@ -482,10 +499,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to fetch visualizations from the API
     async function fetchVisualizations(startMonth, startYear, endMonth, endYear, stateFilters) {
+        console.log('🚀 Starting visualization generation...');
+        
         try {
             // Check if dark mode is enabled
             const isDarkMode = document.body.classList.contains('dark-theme');
             
+            console.log('📡 Sending request to API...');
             const response = await fetch('/api/generate-visualizations', {
                 method: 'POST',
                 headers: {
@@ -505,16 +525,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Failed to generate visualizations');
             }
             
+            console.log('✅ API response received, processing...');
             const data = await response.json();
             displayVisualizations(data, startMonth, startYear, endMonth, endYear, stateFilters);
+            console.log('🎯 Visualizations displayed successfully');
+            
         } catch (error) {
-            console.error('Error:', error);
+            console.error('❌ Error generating visualizations:', error);
             alert('Failed to generate visualizations. Please try again.');
             
             // Show filters page again on error
             showPage('filters-page');
         } finally {
+            console.log('🔄 Hiding loading indicator...');
             loadingIndicator.classList.add('hidden');
+            console.log('✅ Loading indicator hidden');
         }
     }
     

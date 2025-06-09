@@ -252,6 +252,25 @@ button:hover {
     font-weight: 600;
 }
 
+.loading-message {
+    text-align: center;
+    padding: 3rem 2rem;
+    font-size: 1.1rem;
+    color: var(--title);
+    background: var(--panel-bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    margin: 1rem 0;
+    opacity: 0.8;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
 /* Visualization Section */
 .visualizations {
     display: flex;
