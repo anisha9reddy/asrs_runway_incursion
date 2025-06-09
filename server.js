@@ -9,8 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = 3000;
-const pythonApiUrl = 'http://localhost:5000';
+const port = process.env.PORT || 3000;
+const pythonApiUrl = process.env.PYTHON_API_URL || 'http://localhost:5000';
 let pythonApiProcess = null;
 
 // Serve static files
@@ -208,7 +208,17 @@ app.post('/api/generate-visualizations', async (req, res) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', pythonApiRunning: pythonApiProcess !== null && !pythonApiProcess.killed });
+    res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        pythonApiRunning: pythonApiProcess !== null && !pythonApiProcess.killed,
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Root health check for deployment platforms
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Start the server
