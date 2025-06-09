@@ -19,9 +19,22 @@ app.use(express.json());
 
 // Check if data file exists
 const dataFilePath = path.join(__dirname, 'Jan1990_Jan2025.csv');
+console.log(`Checking for data file at: ${dataFilePath}`);
+console.log(`Current working directory: ${process.cwd()}`);
+console.log(`__dirname: ${__dirname}`);
+
 if (!fs.existsSync(dataFilePath)) {
     console.error(`ERROR: Data file not found: ${dataFilePath}`);
     console.error('Please ensure the CSV data file is in the correct location');
+    // List files to debug
+    try {
+        const files = fs.readdirSync(__dirname);
+        console.log('Files in current directory:', files.filter(f => f.includes('.csv')));
+    } catch (e) {
+        console.error('Could not list directory files:', e);
+    }
+} else {
+    console.log('✅ Data file found successfully');
 }
 
 // Start the Python API server
@@ -29,17 +42,34 @@ const startPythonApi = () => {
     return new Promise((resolve, reject) => {
         console.log('Starting Python API server...');
         
-        // Check for Flask installation
-        exec('python -c "import flask"', (error) => {
+        // Check for Python dependencies
+        exec('python -c "import flask, pandas, numpy, matplotlib"', (error, stdout, stderr) => {
+            let pythonCmd = 'python';
+            
             if (error) {
-                console.error('ERROR: Flask is not installed. Please run: pip install flask');
-                console.error('You can also try: pip install -r requirements.txt');
-                reject(new Error('Flask not installed'));
+                console.error('Python dependencies check failed, trying python3...');
+                console.error('Error:', stderr);
+                
+                // Try python3
+                exec('python3 -c "import flask, pandas, numpy, matplotlib"', (error2) => {
+                    if (error2) {
+                        console.error('ERROR: Python dependencies not available');
+                        reject(new Error('Python dependencies not installed'));
+                        return;
+                    }
+                    pythonCmd = 'python3';
+                    startPythonProcess(pythonCmd);
+                });
                 return;
             }
             
+            console.log('✅ Python dependencies found');
+            startPythonProcess(pythonCmd);
+        });
+        
+        const startPythonProcess = (pythonCmd) => {
             // Launch the Python API process
-            pythonApiProcess = spawn('python', ['api.py']);
+            pythonApiProcess = spawn(pythonCmd, ['api.py']);
             
             pythonApiProcess.stdout.on('data', (data) => {
                 console.log(`Python API: ${data.toString().trim()}`);
@@ -65,8 +95,8 @@ const startPythonApi = () => {
             setTimeout(() => {
                 console.log('Python API server should be ready now');
                 resolve(pythonApiProcess);
-            }, 3000); // Give it more time to start up
-        });
+            }, 3000);
+        };
     });
 };
 
@@ -93,7 +123,9 @@ const testDataPreprocessing = async (startMonth, startYear, endMonth, endYear, s
             args.push('--dark-mode');
         }
         
-        const pythonProcess = spawn('python', args);
+        // Try python first, then python3
+        let pythonCmd = 'python';
+        const pythonProcess = spawn(pythonCmd, args);
         
         let stdout = '';
         let stderr = '';
