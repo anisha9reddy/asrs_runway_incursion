@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_file
 import os
 import subprocess
 import time
+import json
 
 app = Flask(__name__)
 
@@ -13,14 +14,23 @@ def generate_visualizations():
     start_year = data.get('startYear')
     end_month = data.get('endMonth')
     end_year = data.get('endYear')
+    state_filters = data.get('stateFilters')
+    dark_mode = data.get('darkMode', False)
     
     # Validate the date range
     if not (start_month and start_year and end_month and end_year):
         return jsonify({'error': 'Missing required parameters'}), 400
     
+    # Prepare state filter suffix
+    state_suffix = ""
+    if state_filters and any(state_filters.values()):
+        selected_states = [state for state in state_filters if state_filters[state]]
+        if len(selected_states) < len(state_filters):
+            state_suffix = f"_states_{len(selected_states)}"
+    
     # Generate the file names with more specific naming that includes all date parameters
-    human_factors_file = f'human_factors_{start_month}{start_year}-{end_month}{end_year}.png'
-    contributing_factors_file = f'contributing_factors_{start_month}{start_year}-{end_month}{end_year}.png'
+    human_factors_file = f'human_factors_{start_month}{start_year}-{end_month}{end_year}{state_suffix}.png'
+    contributing_factors_file = f'contributing_factors_{start_month}{start_year}-{end_month}{end_year}{state_suffix}.png'
     
     # Run the data preprocessing script
     try:
@@ -31,6 +41,14 @@ def generate_visualizations():
             '--end-month', end_month,
             '--end-year', end_year
         ]
+        
+        # Add state filter if provided
+        if state_filters:
+            cmd.extend(['--state-filter', json.dumps(state_filters)])
+        
+        # Add dark mode flag if enabled
+        if dark_mode:
+            cmd.append('--dark-mode')
         
         print(f"Executing command: {' '.join(cmd)}")
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

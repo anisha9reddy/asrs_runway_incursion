@@ -1,0 +1,35 @@
+/* Custom CSS for BERTopic and LDA visualizations */
+
+/* Center all content on the page */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* Target BERTopic-specific elements */
+.container, #figure_el, .js-plotly-plot, .plotly {
+    margin: 0 auto !important;
+    text-align: center !important;
+}
+
+/* Make sure SVG elements are centered */
+svg {
+    margin: 0 auto !important;
+    display: block !important;
+}
+
+/* Target LDA visualization elements */
+#ldavis {
+    margin: 0 auto !important;
+    text-align: center !important;
+}
+
+/* Ensure interactive elements remain accessible */
+.plot-container, .svg-container {
+    margin: 0 auto !important;
+} 

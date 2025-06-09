@@ -71,17 +71,29 @@ const startPythonApi = () => {
 };
 
 // Direct execution of Python script for testing
-const testDataPreprocessing = async (startMonth, startYear, endMonth, endYear) => {
+const testDataPreprocessing = async (startMonth, startYear, endMonth, endYear, stateFilters, darkMode) => {
     return new Promise((resolve, reject) => {
         console.log('Testing data preprocessing directly...');
         
-        const pythonProcess = spawn('python', [
+        const args = [
             'data_preprocessing.py',
             '--start-month', startMonth,
             '--start-year', startYear,
             '--end-month', endMonth,
             '--end-year', endYear
-        ]);
+        ];
+        
+        // Add state filters if provided
+        if (stateFilters) {
+            args.push('--state-filter', JSON.stringify(stateFilters));
+        }
+        
+        // Add dark mode flag if enabled
+        if (darkMode) {
+            args.push('--dark-mode');
+        }
+        
+        const pythonProcess = spawn('python', args);
         
         let stdout = '';
         let stderr = '';
@@ -110,7 +122,7 @@ const testDataPreprocessing = async (startMonth, startYear, endMonth, endYear) =
 
 // API endpoint to generate visualizations
 app.post('/api/generate-visualizations', async (req, res) => {
-    const { startMonth, startYear, endMonth, endYear } = req.body;
+    const { startMonth, startYear, endMonth, endYear, stateFilters, darkMode } = req.body;
     
     // Validate date range
     if (!startMonth || !startYear || !endMonth || !endYear) {
@@ -119,8 +131,21 @@ app.post('/api/generate-visualizations', async (req, res) => {
     
     // Log the request
     console.log(`Generating visualizations for date range: ${startMonth}/${startYear} - ${endMonth}/${endYear}`);
+    if (stateFilters) {
+        const selectedStates = Object.keys(stateFilters).filter(state => stateFilters[state]);
+        console.log(`State filtering enabled with ${selectedStates.length} states selected`);
+    }
     
     try {
+        // Prepare file suffix for state filtering
+        let stateSuffix = "";
+        if (stateFilters && Object.keys(stateFilters).length > 0) {
+            const selectedStates = Object.keys(stateFilters).filter(state => stateFilters[state]);
+            if (selectedStates.length < Object.keys(stateFilters).length) {
+                stateSuffix = `_states_${selectedStates.length}`;
+            }
+        }
+        
         // Try using the API first
         try {
             console.log('Attempting to use Python API...');
@@ -133,7 +158,9 @@ app.post('/api/generate-visualizations', async (req, res) => {
                     startMonth,
                     startYear,
                     endMonth,
-                    endYear
+                    endYear,
+                    stateFilters,
+                    darkMode
                 })
             });
             
@@ -151,11 +178,11 @@ app.post('/api/generate-visualizations', async (req, res) => {
             
             // Fall back to direct script execution
             try {
-                const result = await testDataPreprocessing(startMonth, startYear, endMonth, endYear);
+                const result = await testDataPreprocessing(startMonth, startYear, endMonth, endYear, stateFilters, darkMode);
                 
                 // Check if files were generated
-                const humanFactorsFile = `human_factors_${startMonth}${startYear}-${endMonth}${endYear}.png`;
-                const contributingFactorsFile = `contributing_factors_${startMonth}${startYear}-${endMonth}${endYear}.png`;
+                const humanFactorsFile = `human_factors_${startMonth}${startYear}-${endMonth}${endYear}${stateSuffix}.png`;
+                const contributingFactorsFile = `contributing_factors_${startMonth}${startYear}-${endMonth}${endYear}${stateSuffix}.png`;
                 
                 if (fs.existsSync(humanFactorsFile) && fs.existsSync(contributingFactorsFile)) {
                     return res.json({

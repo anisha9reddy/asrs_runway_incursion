@@ -5,6 +5,10 @@ This web application displays visualizations of runway incursion data from the A
 ## Features
 
 - Date range selection (month and year)
+- State filtering capabilities
+- Two-page layout with visualizations on separate page
+- Back navigation from visualizations to filters
+- Theme toggle (light/dark mode)
 - Visualization of human factors contributing to runway incursions
 - Visualization of contributing factors and situations
 - Responsive design for desktop and mobile devices
