@@ -2,14 +2,11 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import preprocessing_helpers as pph
 import visual_helpers as vh
 import os
 import json
 from datetime import datetime, date
-import plotly.express as px
-import plotly.graph_objects as go
 from pathlib import Path
 from visual_helpers import get_contributing_factors, get_human_factors_person1, get_formatted_labels, get_title
 
