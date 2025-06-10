@@ -253,31 +253,132 @@ app.get('/api/health', async (req, res) => {
     if (process.env.NODE_ENV === 'production') {
         try {
             console.log('Testing Python API connectivity...');
-            const response = await fetch(`${pythonApiUrl}/health`, {
-                method: 'GET',
-                timeout: 5000
-            });
+            console.log(`Attempting to connect to: ${pythonApiUrl}/api/health`);
             
-            if (response.ok) {
+            let response;
+            let healthEndpoint;
+            
+            // Try /api/health first
+            try {
+                healthEndpoint = `${pythonApiUrl}/api/health`;
+                response = await fetch(healthEndpoint, {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                console.log(`/api/health - Response status: ${response.status}`);
+            } catch (firstError) {
+                console.log(`/api/health failed: ${firstError.message}`);
+                
+                // Try /health as fallback
+                try {
+                    healthEndpoint = `${pythonApiUrl}/health`;
+                    response = await fetch(healthEndpoint, {
+                        method: 'GET',
+                        timeout: 5000
+                    });
+                    console.log(`/health - Response status: ${response.status}`);
+                } catch (secondError) {
+                    console.log(`/health also failed: ${secondError.message}`);
+                    throw secondError;
+                }
+            }
+            
+            if (response && response.ok) {
                 const pythonHealth = await response.json();
                 health.pythonApiStatus = 'connected';
                 health.pythonApiDetails = pythonHealth;
+                health.pythonApiEndpoint = healthEndpoint;
                 console.log('✅ Python API is responding');
-            } else {
+            } else if (response) {
                 health.pythonApiStatus = 'error';
                 health.pythonApiError = `HTTP ${response.status}`;
                 console.log(`⚠️ Python API returned status ${response.status}`);
+                
+                // Try root endpoint for debugging
+                try {
+                    const rootResponse = await fetch(`${pythonApiUrl}/`, { timeout: 3000 });
+                    console.log(`Root endpoint status: ${rootResponse.status}`);
+                    if (rootResponse.ok) {
+                        const rootData = await rootResponse.text();
+                        console.log(`Root endpoint response: ${rootData}`);
+                        health.pythonApiRootResponse = rootData;
+                    }
+                } catch (rootError) {
+                    console.log(`Root endpoint also failed: ${rootError.message}`);
+                }
+            } else {
+                throw new Error('No response received');
             }
         } catch (error) {
             health.pythonApiStatus = 'unreachable';
             health.pythonApiError = error.message;
             console.log(`❌ Python API unreachable: ${error.message}`);
+            
+            // Additional debugging
+            console.log(`Python API URL: ${pythonApiUrl}`);
+            console.log(`Error details:`, error);
         }
     } else {
         health.pythonApiStatus = 'local';
     }
     
     res.json(health);
+});
+
+// Debugging endpoint to check Python API connection
+app.get('/api/debug', async (req, res) => {
+    const debug = {
+        environment: process.env.NODE_ENV || 'development',
+        pythonApiUrl: pythonApiUrl,
+        processEnv: {
+            PORT: process.env.PORT,
+            PYTHON_API_URL: process.env.PYTHON_API_URL,
+            NODE_ENV: process.env.NODE_ENV
+        },
+        timestamp: new Date().toISOString()
+    };
+    
+    // Try to connect to Python API for debugging
+    if (process.env.NODE_ENV === 'production') {
+        const endpoints = [
+            `${pythonApiUrl}`,
+            `${pythonApiUrl}/`,
+            `${pythonApiUrl}/health`, 
+            `${pythonApiUrl}/api/health`
+        ];
+        
+        debug.endpointTests = {};
+        
+        for (const endpoint of endpoints) {
+            try {
+                const testResponse = await fetch(endpoint, {
+                    method: 'GET',
+                    timeout: 3000
+                });
+                
+                debug.endpointTests[endpoint] = {
+                    status: testResponse.status,
+                    statusText: testResponse.statusText,
+                    ok: testResponse.ok
+                };
+                
+                if (testResponse.ok) {
+                    try {
+                        const data = await testResponse.text();
+                        debug.endpointTests[endpoint].response = data.substring(0, 200); // First 200 chars
+                    } catch (e) {
+                        debug.endpointTests[endpoint].responseError = e.message;
+                    }
+                }
+            } catch (error) {
+                debug.endpointTests[endpoint] = {
+                    error: error.message
+                };
+            }
+        }
+    }
+    
+    res.json(debug);
 });
 
 // Root health check for deployment platforms

@@ -17,6 +17,28 @@ def health_check():
         'timestamp': time.time()
     })
 
+# Root endpoint for debugging
+@app.route('/', methods=['GET'])
+def root():
+    return jsonify({
+        'service': 'ASRS Python API',
+        'status': 'running',
+        'endpoints': [
+            '/api/health',
+            '/api/generate',
+            '/api/files/<filename>'
+        ]
+    })
+
+# Alternative health check without /api prefix for compatibility
+@app.route('/health', methods=['GET'])
+def health_check_alt():
+    return jsonify({
+        'status': 'ok',
+        'service': 'asrs-python-api',
+        'timestamp': time.time()
+    })
+
 @app.route('/api/generate', methods=['POST'])
 def generate_visualizations():
     # Get the date range from the request
