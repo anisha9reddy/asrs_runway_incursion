@@ -239,14 +239,45 @@ app.post('/api/generate-visualizations', async (req, res) => {
     }
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.json({ 
+// Enhanced health check endpoint with Python API connectivity test
+app.get('/api/health', async (req, res) => {
+    const health = {
         status: 'ok', 
         timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
         pythonApiRunning: pythonApiProcess !== null && !pythonApiProcess.killed,
-        environment: process.env.NODE_ENV || 'development'
-    });
+        pythonApiUrl: pythonApiUrl
+    };
+    
+    // In production, test Python API connectivity
+    if (process.env.NODE_ENV === 'production') {
+        try {
+            console.log('Testing Python API connectivity...');
+            const response = await fetch(`${pythonApiUrl}/health`, {
+                method: 'GET',
+                timeout: 5000
+            });
+            
+            if (response.ok) {
+                const pythonHealth = await response.json();
+                health.pythonApiStatus = 'connected';
+                health.pythonApiDetails = pythonHealth;
+                console.log('✅ Python API is responding');
+            } else {
+                health.pythonApiStatus = 'error';
+                health.pythonApiError = `HTTP ${response.status}`;
+                console.log(`⚠️ Python API returned status ${response.status}`);
+            }
+        } catch (error) {
+            health.pythonApiStatus = 'unreachable';
+            health.pythonApiError = error.message;
+            console.log(`❌ Python API unreachable: ${error.message}`);
+        }
+    } else {
+        health.pythonApiStatus = 'local';
+    }
+    
+    res.json(health);
 });
 
 // Root health check for deployment platforms

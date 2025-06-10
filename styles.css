@@ -254,15 +254,47 @@ button:hover {
 
 .loading-message {
     text-align: center;
-    padding: 3rem 2rem;
     font-size: 1.1rem;
-    color: var(--title);
+    color: var(--text);
+    padding: 2rem;
     background: var(--panel-bg);
-    border: 2px dashed var(--border);
     border-radius: 8px;
-    margin: 1rem 0;
-    opacity: 0.8;
+    border: 1px solid var(--border);
     animation: pulse 2s infinite;
+}
+
+.error-message {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #dc3545;
+    padding: 2rem;
+    background: var(--panel-bg);
+    border-radius: 8px;
+    border: 1px solid #dc3545;
+    margin: 1rem 0;
+}
+
+.dark-theme .error-message {
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+.retry-message {
+    text-align: center;
+    font-size: 1rem;
+    color: #ffc107;
+    padding: 1.5rem;
+    background: var(--panel-bg);
+    border-radius: 8px;
+    border: 1px solid #ffc107;
+    margin: 1rem 0;
+}
+
+.dark-theme .retry-message {
+    color: #ffd43b;
+    border-color: #ffd43b;
+    background: rgba(255, 193, 7, 0.1);
 }
 
 @keyframes pulse {

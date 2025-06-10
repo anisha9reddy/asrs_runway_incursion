@@ -497,42 +497,156 @@ document.addEventListener('DOMContentLoaded', () => {
         return endDate >= startDate;
     }
     
+    // Function to check if API is healthy with retry logic
+    async function waitForApiReady(maxRetries = 30, retryInterval = 2000) {
+        console.log('🔍 Checking API health...');
+        
+        // Add initial delay to allow services to start
+        console.log('⏳ Waiting 5 seconds for services to initialize...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const healthResponse = await fetch('/api/health', {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                
+                if (healthResponse.ok) {
+                    const healthData = await healthResponse.json();
+                    console.log(`✅ API health check passed (attempt ${attempt}/${maxRetries}):`, healthData);
+                    
+                    // In production, also check if Python API is connected
+                    if (healthData.environment === 'production' && healthData.pythonApiStatus !== 'connected') {
+                        console.log(`⏳ Python API not yet connected (${healthData.pythonApiStatus}), retrying...`);
+                        throw new Error(`Python API status: ${healthData.pythonApiStatus}`);
+                    }
+                    
+                    return true;
+                }
+            } catch (error) {
+                console.log(`⏳ API not ready yet (attempt ${attempt}/${maxRetries}): ${error.message}`);
+            }
+            
+            if (attempt < maxRetries) {
+                console.log(`🔄 Retrying in ${retryInterval/1000} seconds...`);
+                
+                // Update loading message to show health check progress
+                const humanFactorsContainer = document.getElementById('human-factors-viz');
+                const contributingFactorsContainer = document.getElementById('contributing-factors-viz');
+                if (humanFactorsContainer) {
+                    humanFactorsContainer.innerHTML = `<div class="loading-message">🔍 Waiting for services to start... (${attempt}/${maxRetries})</div>`;
+                }
+                if (contributingFactorsContainer) {
+                    contributingFactorsContainer.innerHTML = `<div class="loading-message">🔍 Waiting for services to start... (${attempt}/${maxRetries})</div>`;
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, retryInterval));
+            }
+        }
+        
+        console.error('❌ API failed to become ready after maximum retries');
+        return false;
+    }
+
+    // Function to fetch visualizations with retry logic
+    async function fetchVisualizationsWithRetry(startMonth, startYear, endMonth, endYear, stateFilters, maxRetries = 5, retryInterval = 3000) {
+        console.log('🚀 Starting visualization generation with retry logic...');
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                // Check if dark mode is enabled
+                const isDarkMode = document.body.classList.contains('dark-theme');
+                
+                console.log(`📡 Sending request to API (attempt ${attempt}/${maxRetries})...`);
+                const response = await fetch('/api/generate-visualizations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        startMonth,
+                        startYear,
+                        endMonth,
+                        endYear,
+                        stateFilters,
+                        darkMode: isDarkMode
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    throw new Error(`API returned status ${response.status}: ${errorData.error || 'Unknown error'}`);
+                }
+                
+                console.log('✅ API response received, processing...');
+                const data = await response.json();
+                return data;
+                
+            } catch (error) {
+                console.error(`❌ Attempt ${attempt} failed:`, error.message);
+                
+                if (attempt < maxRetries) {
+                    console.log(`🔄 Retrying in ${retryInterval/1000} seconds...`);
+                    
+                    // Update loading message to show retry status
+                    const humanFactorsContainer = document.getElementById('human-factors-viz');
+                    const contributingFactorsContainer = document.getElementById('contributing-factors-viz');
+                    if (humanFactorsContainer) {
+                        humanFactorsContainer.innerHTML = `<div class="retry-message">⚠️ Attempt ${attempt} failed, retrying... (${attempt + 1}/${maxRetries})</div>`;
+                    }
+                    if (contributingFactorsContainer) {
+                        contributingFactorsContainer.innerHTML = `<div class="retry-message">⚠️ Attempt ${attempt} failed, retrying... (${attempt + 1}/${maxRetries})</div>`;
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, retryInterval));
+                } else {
+                    throw new Error(`Failed after ${maxRetries} attempts: ${error.message}`);
+                }
+            }
+        }
+    }
+
     // Function to fetch visualizations from the API
     async function fetchVisualizations(startMonth, startYear, endMonth, endYear, stateFilters) {
         console.log('🚀 Starting visualization generation...');
         
         try {
-            // Check if dark mode is enabled
-            const isDarkMode = document.body.classList.contains('dark-theme');
-            
-            console.log('📡 Sending request to API...');
-            const response = await fetch('/api/generate-visualizations', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    startMonth,
-                    startYear,
-                    endMonth,
-                    endYear,
-                    stateFilters,
-                    darkMode: isDarkMode
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to generate visualizations');
+            // First, wait for API to be ready
+            const apiReady = await waitForApiReady();
+            if (!apiReady) {
+                throw new Error('API service is not responding. Please try again in a few minutes.');
             }
             
-            console.log('✅ API response received, processing...');
-            const data = await response.json();
+            // Then attempt to fetch visualizations with retry logic
+            const data = await fetchVisualizationsWithRetry(startMonth, startYear, endMonth, endYear, stateFilters);
             displayVisualizations(data, startMonth, startYear, endMonth, endYear, stateFilters);
             console.log('🎯 Visualizations displayed successfully');
             
         } catch (error) {
             console.error('❌ Error generating visualizations:', error);
-            alert('Failed to generate visualizations. Please try again.');
+            
+            // Show more specific error messages
+            let errorMessage = 'Failed to generate visualizations. ';
+            if (error.message.includes('API service is not responding')) {
+                errorMessage += 'The service is starting up. Please wait a few minutes and try again.';
+            } else if (error.message.includes('Failed after')) {
+                errorMessage += 'The service appears to be having issues. Please try again later.';
+            } else {
+                errorMessage += 'Please try again.';
+            }
+            
+            alert(errorMessage);
+            
+            // Show error state in containers
+            const humanFactorsContainer = document.getElementById('human-factors-viz');
+            const contributingFactorsContainer = document.getElementById('contributing-factors-viz');
+            if (humanFactorsContainer) {
+                humanFactorsContainer.innerHTML = '<div class="error-message">❌ Failed to generate visualization. Please try again.</div>';
+            }
+            if (contributingFactorsContainer) {
+                contributingFactorsContainer.innerHTML = '<div class="error-message">❌ Failed to generate visualization. Please try again.</div>';
+            }
             
             // Show filters page again on error
             showPage('filters-page');
