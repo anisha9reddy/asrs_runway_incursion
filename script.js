@@ -531,14 +531,34 @@ document.addEventListener('DOMContentLoaded', () => {
             if (attempt < maxRetries) {
                 console.log(`🔄 Retrying in ${retryInterval/1000} seconds...`);
                 
-                // Update loading message to show health check progress
+                // Show user-friendly message - don't reveal technical details for first 2 minutes
                 const humanFactorsContainer = document.getElementById('human-factors-viz');
                 const contributingFactorsContainer = document.getElementById('contributing-factors-viz');
-                if (humanFactorsContainer) {
-                    humanFactorsContainer.innerHTML = `<div class="loading-message">🔍 Waiting for services to start... (${attempt}/${maxRetries})</div>`;
-                }
-                if (contributingFactorsContainer) {
-                    contributingFactorsContainer.innerHTML = `<div class="loading-message">🔍 Waiting for services to start... (${attempt}/${maxRetries})</div>`;
+                
+                if (attempt * retryInterval < 120000) { // First 2 minutes (120 seconds)
+                    // Show simple generating message
+                    if (humanFactorsContainer) {
+                        humanFactorsContainer.innerHTML = `<div class="loading-message">🔄 Generating visualizations...</div>`;
+                    }
+                    if (contributingFactorsContainer) {
+                        contributingFactorsContainer.innerHTML = `<div class="loading-message">🔄 Generating visualizations...</div>`;
+                    }
+                } else if (attempt * retryInterval < 300000) { // 2-5 minutes
+                    // Show that it's taking longer than usual
+                    if (humanFactorsContainer) {
+                        humanFactorsContainer.innerHTML = `<div class="loading-message">🔄 This is taking longer than usual, please wait...</div>`;
+                    }
+                    if (contributingFactorsContainer) {
+                        contributingFactorsContainer.innerHTML = `<div class="loading-message">🔄 This is taking longer than usual, please wait...</div>`;
+                    }
+                } else {
+                    // After 5 minutes, show more technical details
+                    if (humanFactorsContainer) {
+                        humanFactorsContainer.innerHTML = `<div class="retry-message">⏳ Services are starting up, please wait... (${Math.floor(attempt * retryInterval / 1000)}s)</div>`;
+                    }
+                    if (contributingFactorsContainer) {
+                        contributingFactorsContainer.innerHTML = `<div class="retry-message">⏳ Services are starting up, please wait... (${Math.floor(attempt * retryInterval / 1000)}s)</div>`;
+                    }
                 }
                 
                 await new Promise(resolve => setTimeout(resolve, retryInterval));
@@ -550,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Function to fetch visualizations with retry logic
-    async function fetchVisualizationsWithRetry(startMonth, startYear, endMonth, endYear, stateFilters, maxRetries = 5, retryInterval = 3000) {
+    async function fetchVisualizationsWithRetry(startMonth, startYear, endMonth, endYear, stateFilters, maxRetries = 10, retryInterval = 3000) {
         console.log('🚀 Starting visualization generation with retry logic...');
         
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -589,14 +609,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (attempt < maxRetries) {
                     console.log(`🔄 Retrying in ${retryInterval/1000} seconds...`);
                     
-                    // Update loading message to show retry status
+                    // Show user-friendly messages based on timing
                     const humanFactorsContainer = document.getElementById('human-factors-viz');
                     const contributingFactorsContainer = document.getElementById('contributing-factors-viz');
-                    if (humanFactorsContainer) {
-                        humanFactorsContainer.innerHTML = `<div class="retry-message">⚠️ Attempt ${attempt} failed, retrying... (${attempt + 1}/${maxRetries})</div>`;
-                    }
-                    if (contributingFactorsContainer) {
-                        contributingFactorsContainer.innerHTML = `<div class="retry-message">⚠️ Attempt ${attempt} failed, retrying... (${attempt + 1}/${maxRetries})</div>`;
+                    const elapsedTime = attempt * retryInterval;
+                    
+                    if (elapsedTime < 180000) { // First 3 minutes
+                        // Keep showing simple generating message
+                        if (humanFactorsContainer) {
+                            humanFactorsContainer.innerHTML = `<div class="loading-message">🔄 Generating visualizations...</div>`;
+                        }
+                        if (contributingFactorsContainer) {
+                            contributingFactorsContainer.innerHTML = `<div class="loading-message">🔄 Generating visualizations...</div>`;
+                        }
+                    } else if (elapsedTime < 300000) { // 3-5 minutes
+                        // Show it's taking longer
+                        if (humanFactorsContainer) {
+                            humanFactorsContainer.innerHTML = `<div class="loading-message">🔄 Still processing, this may take a few more minutes...</div>`;
+                        }
+                        if (contributingFactorsContainer) {
+                            contributingFactorsContainer.innerHTML = `<div class="loading-message">🔄 Still processing, this may take a few more minutes...</div>`;
+                        }
+                    } else {
+                        // After 5 minutes, show retry information
+                        if (humanFactorsContainer) {
+                            humanFactorsContainer.innerHTML = `<div class="retry-message">⚠️ Processing is taking longer than expected, retrying... (${attempt}/${maxRetries})</div>`;
+                        }
+                        if (contributingFactorsContainer) {
+                            contributingFactorsContainer.innerHTML = `<div class="retry-message">⚠️ Processing is taking longer than expected, retrying... (${attempt}/${maxRetries})</div>`;
+                        }
                     }
                     
                     await new Promise(resolve => setTimeout(resolve, retryInterval));
@@ -615,7 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // First, wait for API to be ready
             const apiReady = await waitForApiReady();
             if (!apiReady) {
-                throw new Error('API service is not responding. Please try again in a few minutes.');
+                throw new Error('TIMEOUT: Services are taking longer than expected to start. This may happen on the first use or during high traffic periods. Please try again in a few minutes.');
             }
             
             // Then attempt to fetch visualizations with retry logic
@@ -627,13 +668,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('❌ Error generating visualizations:', error);
             
             // Show more specific error messages
-            let errorMessage = 'Failed to generate visualizations. ';
-            if (error.message.includes('API service is not responding')) {
-                errorMessage += 'The service is starting up. Please wait a few minutes and try again.';
-            } else if (error.message.includes('Failed after')) {
-                errorMessage += 'The service appears to be having issues. Please try again later.';
+            let errorMessage = '';
+            let isTimeout = error.message.includes('TIMEOUT') || error.message.includes('Failed after') || error.message.includes('not responding');
+            
+            if (isTimeout) {
+                errorMessage = 'The visualization service is starting up or experiencing high demand. This is normal for the first use or during busy periods. Please wait a few minutes and try again.';
             } else {
-                errorMessage += 'Please try again.';
+                errorMessage = 'There was a temporary issue generating the visualizations. Please try again.';
             }
             
             alert(errorMessage);
@@ -642,10 +683,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const humanFactorsContainer = document.getElementById('human-factors-viz');
             const contributingFactorsContainer = document.getElementById('contributing-factors-viz');
             if (humanFactorsContainer) {
-                humanFactorsContainer.innerHTML = '<div class="error-message">❌ Failed to generate visualization. Please try again.</div>';
+                humanFactorsContainer.innerHTML = '<div class="error-message">⏳ Service temporarily unavailable. Please try again in a few minutes.</div>';
             }
             if (contributingFactorsContainer) {
-                contributingFactorsContainer.innerHTML = '<div class="error-message">❌ Failed to generate visualization. Please try again.</div>';
+                contributingFactorsContainer.innerHTML = '<div class="error-message">⏳ Service temporarily unavailable. Please try again in a few minutes.</div>';
             }
             
             // Show filters page again on error

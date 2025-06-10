@@ -261,6 +261,38 @@ button:hover {
     border-radius: 8px;
     border: 1px solid var(--border);
     animation: pulse 2s infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.loading-message::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 2s infinite;
+}
+
+.dark-theme .loading-message::after {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
 }
 
 .error-message {
@@ -295,12 +327,6 @@ button:hover {
     color: #ffd43b;
     border-color: #ffd43b;
     background: rgba(255, 193, 7, 0.1);
-}
-
-@keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
 }
 
 /* Visualization Section */
