@@ -174,75 +174,24 @@ st.markdown(f"""
     .stSelectbox [data-baseweb="select"] [role="listbox"],
     .stSelectbox [data-baseweb="select"] [role="option"],
     .stSelectbox div[data-baseweb="popover"] > div,
-    .stSelectbox div[data-baseweb="popover"] li,
-    .stSelectbox [data-baseweb="popover"] [data-baseweb="menu"],
-    .stSelectbox [data-baseweb="popover"] [data-baseweb="menu"] > ul,
-    .stSelectbox [data-baseweb="popover"] [data-baseweb="menu"] li,
-    div[data-baseweb="popover"] div[data-baseweb="menu"],
-    div[data-baseweb="popover"] div[data-baseweb="menu"] ul,
-    div[data-baseweb="popover"] div[data-baseweb="menu"] li,
-    div[data-baseweb="popover"] ul[role="listbox"],
-    div[data-baseweb="popover"] li[role="option"] {
-        background: rgba(20, 26, 40, 0.95) !important;
+    .stSelectbox div[data-baseweb="popover"] li {
+        background: rgba(20, 26, 40, 0.9) !important;
         color: #e9e9e9 !important;
         border-color: rgba(255, 255, 255, 0.2) !important;
-        backdrop-filter: blur(10px) !important;
     }
     
     .stSelectbox [data-baseweb="select"] li:hover,
     .stSelectbox [data-baseweb="select"] [role="option"]:hover,
-    .stSelectbox div[data-baseweb="popover"] li:hover,
-    .stSelectbox [data-baseweb="popover"] [data-baseweb="menu"] li:hover,
-    div[data-baseweb="popover"] div[data-baseweb="menu"] li:hover,
-    div[data-baseweb="popover"] li[role="option"]:hover {
-        background: rgba(60, 70, 120, 0.8) !important;
+    .stSelectbox div[data-baseweb="popover"] li:hover {
+        background: rgba(60, 70, 120, 0.6) !important;
         color: #ffffff !important;
     }
     
     .stSelectbox [data-baseweb="select"] li[aria-selected="true"],
     .stSelectbox [data-baseweb="select"] [role="option"][aria-selected="true"],
-    .stSelectbox div[data-baseweb="popover"] li[aria-selected="true"],
-    .stSelectbox [data-baseweb="popover"] [data-baseweb="menu"] li[aria-selected="true"],
-    div[data-baseweb="popover"] div[data-baseweb="menu"] li[aria-selected="true"],
-    div[data-baseweb="popover"] li[role="option"][aria-selected="true"] {
-        background: rgba(60, 70, 120, 0.9) !important;
+    .stSelectbox div[data-baseweb="popover"] li[aria-selected="true"] {
+        background: rgba(60, 70, 120, 0.8) !important;
         color: #ffffff !important;
-    }
-    
-    /* Additional comprehensive dropdown styling for dark mode */
-    [data-baseweb="popover"] {
-        backdrop-filter: blur(15px) !important;
-    }
-    
-    [data-baseweb="popover"] > div {
-        background: rgba(20, 26, 40, 0.95) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        border-radius: 8px !important;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
-    }
-    
-    [data-baseweb="menu"] {
-        background: rgba(20, 26, 40, 0.95) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    }
-    
-    [data-baseweb="menu"] ul {
-        background: transparent !important;
-    }
-    
-    [data-baseweb="menu"] li {
-        background: transparent !important;
-        color: #e9e9e9 !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-    
-    [data-baseweb="menu"] li:hover {
-        background: rgba(60, 70, 120, 0.6) !important;
-        color: #ffffff !important;
-    }
-    
-    [data-baseweb="menu"] li:last-child {
-        border-bottom: none !important;
     }
     
     .stInfo {
@@ -264,7 +213,7 @@ st.markdown(f"""
     }
     '''}
     
-    /* Buttons with theme support for ALL buttons */
+    /* Buttons with theme support */
     .stButton > button {{
         background: {"linear-gradient(90deg, #3a4a7c 0%, #4b4d7f 100%)" if st.session_state.get('dark_theme', False) else "#0056b3"} !important;
         color: white !important;
@@ -282,27 +231,6 @@ st.markdown(f"""
         background: {"linear-gradient(90deg, #455893 0%, #585a98 100%)" if st.session_state.get('dark_theme', False) else "#003d82"} !important;
         transform: translateY(-1px) !important;
     }}
-    
-    /* Light mode button styling */
-    {"" if st.session_state.get('dark_theme', False) else '''
-    .stButton > button {{
-        background: #0056b3 !important;
-        color: white !important;
-        border: none !important;
-        padding: 0.75rem 2rem !important;
-        border-radius: 4px !important;
-        font-weight: bold !important;
-        font-size: 1rem !important;
-        cursor: pointer !important;
-        transition: all 0.3s !important;
-        width: 100% !important;
-    }}
-    
-    .stButton > button:hover {{
-        background: #003d82 !important;
-        transform: translateY(-1px) !important;
-    }}
-    '''}
     
     /* State chips with theme support */
     .state-chip {{
@@ -348,6 +276,27 @@ st.markdown(f"""
         background: {"rgba(15, 18, 25, 0.9)" if st.session_state.get('dark_theme', False) else "white"};
     }}
     
+    /* Custom scrollbar for dark theme */
+    {"" if not st.session_state.get('dark_theme', False) else '''
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+    }
+    '''}
 </style>
 """, unsafe_allow_html=True)
 
@@ -370,25 +319,33 @@ if 'dark_theme' not in st.session_state:
 # Apply theme class to the entire app
 theme_class = "dark-theme" if st.session_state.dark_theme else ""
 
-# Theme toggle functionality using sidebar (hidden but functional)
-with st.sidebar:
-    if st.button(f"{'☀️ Light Mode' if st.session_state.dark_theme else '🌙 Dark Mode'}", key="theme_toggle", help="Toggle theme"):
-        old_theme = st.session_state.dark_theme
-        st.session_state.dark_theme = not st.session_state.dark_theme
-        
-        # Only force chart regeneration if we're currently on the visualizations page
-        if (st.session_state.current_page == 'visualizations' and 
-            st.session_state.get('generated_charts')):
-            st.session_state.generated_charts = None
-            st.session_state.force_chart_regeneration = True
-        
-        # Also clear any cached visualization data for BERTopic and LDA pages
-        if 'berttopic_viz_cache' in st.session_state:
-            st.session_state.berttopic_viz_cache = {}
-        if 'lda_viz_cache' in st.session_state:
-            st.session_state.lda_viz_cache = {}
-        
-        st.rerun()
+# Create a hidden container for the theme toggle button
+theme_container = st.container()
+with theme_container:
+    # Use columns to position the button but make it invisible via CSS
+    _, _, col_toggle = st.columns([5, 4, 1])
+    with col_toggle:
+        if st.button(f"{'☀️ Light Mode' if st.session_state.dark_theme else '🌙 Dark Mode'}", key="theme_toggle", help="Toggle theme"):
+            old_theme = st.session_state.dark_theme
+            st.session_state.dark_theme = not st.session_state.dark_theme
+            
+            # Force regeneration of all visualizations when theme changes
+            if st.session_state.get('generated_charts') or st.session_state.get('last_generation_params'):
+                st.session_state.generated_charts = None
+                st.session_state.force_chart_regeneration = True
+                
+                # If we're not on the visualizations page but have charts, go there to show the regenerated charts
+                if (st.session_state.current_page != 'visualizations' and 
+                    st.session_state.get('last_generation_params')):
+                    st.session_state.current_page = 'visualizations'
+            
+            # Also clear any cached visualization data for BERTopic and LDA pages
+            if 'berttopic_viz_cache' in st.session_state:
+                st.session_state.berttopic_viz_cache = {}
+            if 'lda_viz_cache' in st.session_state:
+                st.session_state.lda_viz_cache = {}
+            
+            st.rerun()
 
 # Global theme change handler - regenerate charts if theme changed and we have data
 if (st.session_state.get('force_chart_regeneration', False) and 
@@ -400,17 +357,17 @@ if (st.session_state.get('force_chart_regeneration', False) and
 # CSS to position the theme toggle button below the header
 st.markdown("""
 <style>
-/* Hide the sidebar completely */
-.css-1d391kg, [data-testid="stSidebar"] {
-    display: none !important;
-}
-
-/* Position the theme toggle button from sidebar absolutely */
-[data-testid="stSidebar"] .stButton > button {
+/* Hide the theme toggle columns container and position the button absolutely */
+div[data-testid="column"]:has([data-testid="stButton"]) {
     position: fixed !important;
     top: 110px !important;
     right: 24px !important;
     z-index: 1001 !important;
+    width: auto !important;
+}
+
+/* Style the theme toggle button to match header design */
+div[data-testid="column"]:has([data-testid="stButton"]) .stButton > button {
     background: rgba(255, 255, 255, 0.15) !important;
     color: white !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
@@ -424,21 +381,16 @@ st.markdown("""
     font-weight: 500 !important;
     width: auto !important;
     white-space: nowrap !important;
-    display: block !important;
 }
 
-[data-testid="stSidebar"] .stButton > button:hover {
+div[data-testid="column"]:has([data-testid="stButton"]) .stButton > button:hover {
     background: rgba(255, 255, 255, 0.25) !important;
     transform: translateY(-1px) !important;
 }
 
-/* Make sidebar theme toggle button visible even though sidebar is hidden */
-[data-testid="stSidebar"] .stButton {
-    position: fixed !important;
-    top: 110px !important;
-    right: 24px !important;
-    z-index: 1001 !important;
-    display: block !important;
+/* Hide the container that holds the columns */
+div[data-testid="stHorizontalBlock"]:has(div[data-testid="column"] .stButton) {
+    display: none !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -1175,8 +1127,10 @@ elif st.session_state.current_page == 'berttopic':
             st.rerun()
     
     with col2:
-        # Date display removed as requested
-        pass
+        if st.session_state.last_generation_params:
+            params = st.session_state.last_generation_params
+            summary_text = f"{months[params['start_month']]} {params['start_year']} - {months[params['end_month']]} {params['end_year']}"
+            st.markdown(f"<div class='filters-summary'>{summary_text}</div>", unsafe_allow_html=True)
     
     with col3:
         if st.button("LDA →", key="bert_to_lda"):
@@ -1240,8 +1194,10 @@ elif st.session_state.current_page == 'lda':
             st.rerun()
     
     with col2:
-        # Date display removed as requested  
-        pass
+        if st.session_state.last_generation_params:
+            params = st.session_state.last_generation_params
+            summary_text = f"{months[params['start_month']]} {params['start_year']} - {months[params['end_month']]} {params['end_year']}"
+            st.markdown(f"<div class='filters-summary'>{summary_text}</div>", unsafe_allow_html=True)
     
     with col3:
         if st.button("BERTopic →", key="lda_to_bert"):
