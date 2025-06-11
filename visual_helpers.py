@@ -177,7 +177,7 @@ def contributing_factors_visualization(contributing_factors_dict, n_annotation, 
         grid_color = '#dddddd'
         bg_color = 'white'
         fig_edge_color = '#cccccc'
-        ax_bg_color = '#f8f8f8'
+        ax_bg_color = 'white'
         
     # Get color map appropriate for the current mode
     color_map = get_cf_color_map(contributing_factors_dict, dark_mode=dark_mode)
@@ -279,7 +279,7 @@ def human_factors_visualization(human_factors_dict, n_annotation, title, save_fi
         grid_color = '#dddddd'
         bg_color = 'white'
         fig_edge_color = '#cccccc'
-        ax_bg_color = '#f8f8f8'
+        ax_bg_color = 'white'
     
     # Set larger font sizes for all text elements
     plt.rcParams.update({

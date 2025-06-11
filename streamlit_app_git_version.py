@@ -24,11 +24,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Initialize theme state
-if 'dark_theme' not in st.session_state:
-    st.session_state.dark_theme = False
+# Apply theme CSS with proper dark mode
+theme_class = "dark-theme" if st.session_state.get('dark_theme', False) else ""
 
-# Apply theme CSS with comprehensive dark mode support
 st.markdown(f"""
 <style>
     /* Hide Streamlit default elements */
@@ -73,6 +71,28 @@ st.markdown(f"""
         text-align: center;
     }}
     
+    /* Theme toggle button in header */
+    .theme-toggle-btn {{
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        padding: 0.4rem 0.8rem !important;
+        border-radius: 20px !important;
+        font-size: 0.75rem !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        backdrop-filter: blur(10px) !important;
+        min-width: 60px !important;
+        font-weight: 500 !important;
+    }}
+    
+    .theme-toggle-btn:hover {{
+        background: rgba(255, 255, 255, 0.25) !important;
+        transform: translateY(-1px) !important;
+    }}
+    
+
+    
     /* Add padding to body to account for fixed header */
     .main .block-container {{
         padding-top: 120px !important;
@@ -91,7 +111,7 @@ st.markdown(f"""
     }}
     
     .date-selector h2, .filter-section h3, .viz-container h2 {{
-        color: {"#ffffff" if st.session_state.get('dark_theme', False) else "#0056b3"};
+        color: {"#c5cde8" if st.session_state.get('dark_theme', False) else "#0056b3"};
         margin-bottom: 1.5rem;
         font-weight: 300;
     }}
@@ -104,108 +124,50 @@ st.markdown(f"""
     .stSelectbox [data-baseweb="select"] [role="listbox"],
     .stSelectbox [data-baseweb="select"] [role="option"],
     .stSelectbox div[data-baseweb="popover"] > div,
-    .stSelectbox div[data-baseweb="popover"] li {{
+    .stSelectbox div[data-baseweb="popover"] li {
         background: white !important;
         color: #333 !important;
         border-color: #ddd !important;
-    }}
+    }
     
     .stSelectbox [data-baseweb="select"] li:hover,
     .stSelectbox [data-baseweb="select"] [role="option"]:hover,
-    .stSelectbox div[data-baseweb="popover"] li:hover {{
+    .stSelectbox div[data-baseweb="popover"] li:hover {
         background: #f0f7ff !important;
         color: #0056b3 !important;
-    }}
+    }
     
     .stSelectbox [data-baseweb="select"] li[aria-selected="true"],
     .stSelectbox [data-baseweb="select"] [role="option"][aria-selected="true"],
-    .stSelectbox div[data-baseweb="popover"] li[aria-selected="true"] {{
+    .stSelectbox div[data-baseweb="popover"] li[aria-selected="true"] {
         background: #e7f0f7 !important;
         color: #0056b3 !important;
-    }}
-    
-    /* Selected dropdown value text styling for light mode */
-    .stSelectbox > div > div > div,
-    .stSelectbox [data-baseweb="select"] > div > div,
-    .stSelectbox [data-baseweb="select"] [data-baseweb="single-select"] > div,
-    .stSelectbox [data-baseweb="select"] [data-baseweb="single-select"] span,
-    .stSelectbox > div > div span,
-    .stSelectbox div[data-testid="stSelectbox"] > div > div > div,
-    .stSelectbox [data-baseweb="select"] [data-baseweb="single-select"],
-    .stSelectbox [data-baseweb="select"] div[data-baseweb="single-select"],
-    .stSelectbox [data-baseweb="select"] div[data-baseweb="single-select"] > span,
-    .stSelectbox [data-baseweb="select"] span,
-    .stSelectbox div[data-baseweb="select"] span {{
-        color: #333 !important;
-    }}
-    
-    /* Input field text for selectbox in light mode */
-    .stSelectbox input,
-    .stSelectbox [data-baseweb="input"] input {{
-        color: #333 !important;
-    }}
-    
-    /* More specific targeting for selected value display in light mode */
-    .stSelectbox [data-baseweb="select"] [data-baseweb="single-select"] div,
-    .stSelectbox div[data-baseweb="select"] div[data-baseweb="single-select"] div {{
-        color: #333 !important;
-    }}
+    }
     '''}
     
-    /* Dark mode comprehensive styling */
+    /* Override ALL Streamlit text colors in dark mode */
     {"" if not st.session_state.get('dark_theme', False) else '''
     .stMarkdown, .stText, p, span, div, h1, h2, h3, h4, h5, h6,
     .stSelectbox label, .stMultiSelect label, .stCheckbox label,
     .stExpander .streamlit-expanderHeader,
     .stMetric .metric-container .metric-label,
-    .stMetric .metric-container .metric-value,
-    .stMetric label, .stMetric div, .stMetric span,
-    .stInfo, .stSuccess, .stWarning, .stError,
-    label, .stSelectbox > label, .stMultiSelect > label, 
-    .stCheckbox > label, .stRadio > label, .stSlider > label,
-    .stTextInput > label, .stTextArea > label, .stDateInput > label,
-    .stTimeInput > label, .stNumberInput > label,
-    div[data-testid="stSelectbox"] label,
-    div[data-testid="stMultiSelect"] label,
-    div[data-testid="stCheckbox"] label {{
-        color: #ffffff !important;
-    }}
+    .stInfo, .stSuccess, .stWarning, .stError {
+        color: #e9e9e9 !important;
+    }
     
     .stSelectbox > div > div,
-    .stMultiSelect > div > div {{
+    .stMultiSelect > div > div {
         background: rgba(20, 26, 40, 0.7) !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        color: #ffffff !important;
-    }}
+        color: #e9e9e9 !important;
+    }
     
-    /* Selected dropdown value text styling for dark mode */
     .stSelectbox > div > div > div,
-    .stSelectbox [data-baseweb="select"] > div > div,
-    .stSelectbox [data-baseweb="select"] [data-baseweb="single-select"] > div,
-    .stSelectbox [data-baseweb="select"] [data-baseweb="single-select"] span,
-    .stSelectbox > div > div span,
-    .stSelectbox div[data-testid="stSelectbox"] > div > div > div,
-    .stSelectbox [data-baseweb="select"] [data-baseweb="single-select"],
-    .stSelectbox [data-baseweb="select"] div[data-baseweb="single-select"],
-    .stSelectbox [data-baseweb="select"] div[data-baseweb="single-select"] > span,
-    .stSelectbox [data-baseweb="select"] span,
-    .stSelectbox div[data-baseweb="select"] span {{
-        color: #ffffff !important;
-    }}
+    .stMultiSelect > div > div > div {
+        color: #e9e9e9 !important;
+    }
     
-    /* Input field text for selectbox */
-    .stSelectbox input,
-    .stSelectbox [data-baseweb="input"] input {{
-        color: #ffffff !important;
-    }}
-    
-    /* More specific targeting for selected value display */
-    .stSelectbox [data-baseweb="select"] [data-baseweb="single-select"] div,
-    .stSelectbox div[data-baseweb="select"] div[data-baseweb="single-select"] div {{
-        color: #ffffff !important;
-    }}
-    
-    /* Comprehensive dropdown options styling for dark mode */
+    /* Dropdown options styling for dark mode */
     .stSelectbox [data-baseweb="select"] > div,
     .stSelectbox [data-baseweb="select"] ul,
     .stSelectbox [data-baseweb="select"] li,
@@ -220,134 +182,89 @@ st.markdown(f"""
     div[data-baseweb="popover"] div[data-baseweb="menu"] ul,
     div[data-baseweb="popover"] div[data-baseweb="menu"] li,
     div[data-baseweb="popover"] ul[role="listbox"],
-    div[data-baseweb="popover"] li[role="option"] {{
+    div[data-baseweb="popover"] li[role="option"] {
         background: rgba(20, 26, 40, 0.95) !important;
-        color: #ffffff !important;
+        color: #e9e9e9 !important;
         border-color: rgba(255, 255, 255, 0.2) !important;
         backdrop-filter: blur(10px) !important;
-    }}
+    }
     
     .stSelectbox [data-baseweb="select"] li:hover,
     .stSelectbox [data-baseweb="select"] [role="option"]:hover,
     .stSelectbox div[data-baseweb="popover"] li:hover,
     .stSelectbox [data-baseweb="popover"] [data-baseweb="menu"] li:hover,
     div[data-baseweb="popover"] div[data-baseweb="menu"] li:hover,
-    div[data-baseweb="popover"] li[role="option"]:hover {{
+    div[data-baseweb="popover"] li[role="option"]:hover {
         background: rgba(60, 70, 120, 0.8) !important;
         color: #ffffff !important;
-    }}
+    }
     
-    /* Additional comprehensive dropdown styling */
-    [data-baseweb="popover"] {{
+    .stSelectbox [data-baseweb="select"] li[aria-selected="true"],
+    .stSelectbox [data-baseweb="select"] [role="option"][aria-selected="true"],
+    .stSelectbox div[data-baseweb="popover"] li[aria-selected="true"],
+    .stSelectbox [data-baseweb="popover"] [data-baseweb="menu"] li[aria-selected="true"],
+    div[data-baseweb="popover"] div[data-baseweb="menu"] li[aria-selected="true"],
+    div[data-baseweb="popover"] li[role="option"][aria-selected="true"] {
+        background: rgba(60, 70, 120, 0.9) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Additional comprehensive dropdown styling for dark mode */
+    [data-baseweb="popover"] {
         backdrop-filter: blur(15px) !important;
-    }}
+    }
     
-    [data-baseweb="popover"] > div {{
+    [data-baseweb="popover"] > div {
         background: rgba(20, 26, 40, 0.95) !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 8px !important;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
-    }}
+    }
     
-    [data-baseweb="menu"] {{
+    [data-baseweb="menu"] {
         background: rgba(20, 26, 40, 0.95) !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    }}
+    }
     
-    [data-baseweb="menu"] li {{
-        background: rgba(20, 26, 40, 0.95) !important;
-        color: #ffffff !important;
+    [data-baseweb="menu"] ul {
+        background: transparent !important;
+    }
+    
+    [data-baseweb="menu"] li {
+        background: transparent !important;
+        color: #e9e9e9 !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }}
+    }
     
-    [data-baseweb="menu"] li:hover {{
-        background: rgba(60, 70, 120, 0.8) !important;
+    [data-baseweb="menu"] li:hover {
+        background: rgba(60, 70, 120, 0.6) !important;
         color: #ffffff !important;
-    }}
+    }
     
-    [data-baseweb="menu"] li:last-child {{
+    [data-baseweb="menu"] li:last-child {
         border-bottom: none !important;
-    }}
+    }
     
-    .stInfo {{
+    .stInfo {
         background: rgba(30, 40, 60, 0.8) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: #ffffff !important;
-    }}
+        color: #e9e9e9 !important;
+    }
     
-    .stExpander {{
+    .stExpander {
         background: rgba(30, 35, 48, 0.6) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: #ffffff !important;
-    }}
+    }
     
-    .stExpander > div > div > div {{
-        color: #ffffff !important;
-    }}
-    
-    .stExpander .streamlit-expanderContent {{
-        color: #ffffff !important;
-    }}
-    
-    .stMetric {{
+    .stMetric {
         background: rgba(30, 35, 48, 0.6) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 8px;
         padding: 1rem;
-        color: #ffffff !important;
-    }}
-    
-    .stMetric > div {{
-        color: #ffffff !important;
-    }}
-    
-    .stMetric * {{
-        color: #ffffff !important;
-    }}
-    
-    /* Additional comprehensive white text styling for dark mode */
-    .element-container, .stMarkdown, .stText, 
-    .stSelectbox, .stMultiSelect, .stCheckbox,
-    .stButton, .stSlider, .stTextInput, .stTextArea,
-    .stDateInput, .stTimeInput, .stNumberInput,
-    .stRadio, .stTabs, .stColumns, .stContainer,
-    .stSidebar, .stHeader, .stSubheader, .stTitle,
-    .stCaption, .stCode, .stDataFrame, .stTable,
-    .stJson, .stLatex, .stSuccess, .stInfo, .stWarning, .stError,
-    .stBalloons, .stSnow, .streamlit-expanderHeader,
-    .streamlit-expanderContent {{
-        color: #ffffff !important;
-    }}
-    
-    /* Ensure all child elements inherit white text */
-    * {{
-        color: inherit !important;
-    }}
-    
-    /* Override any remaining blue or gray text in dark mode */
-    .stMarkdown p, .stMarkdown div, .stMarkdown span,
-    .stText p, .stText div, .stText span,
-    div[data-testid="stMarkdownContainer"] p,
-    div[data-testid="stMarkdownContainer"] div,
-    div[data-testid="stMarkdownContainer"] span {{
-        color: #ffffff !important;
-    }}
-    
-    /* Strong and bold text */
-    strong, b, .stMarkdown strong, .stMarkdown b {{
-        color: #ffffff !important;
-    }}
-    
-    /* Warning, info, and success messages */
-    .stWarning, .stWarning *, 
-    .stInfo, .stInfo *,
-    .stSuccess, .stSuccess *,
-    .stError, .stError * {{
-        color: #ffffff !important;
-    }}
+    }
     '''}
     
-    /* Button styling with theme support */
+    /* Buttons with theme support for ALL buttons */
     .stButton > button {{
         background: {"linear-gradient(90deg, #3a4a7c 0%, #4b4d7f 100%)" if st.session_state.get('dark_theme', False) else "#0056b3"} !important;
         color: white !important;
@@ -366,18 +283,64 @@ st.markdown(f"""
         transform: translateY(-1px) !important;
     }}
     
-    /* Navigation styling */
-    .navigation-container {{
-        background: {"rgba(30, 35, 48, 0.8)" if st.session_state.get('dark_theme', False) else "white"};
+    /* Light mode button styling */
+    {"" if st.session_state.get('dark_theme', False) else '''
+    .stButton > button {{
+        background: #0056b3 !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.75rem 2rem !important;
+        border-radius: 4px !important;
+        font-weight: bold !important;
+        font-size: 1rem !important;
+        cursor: pointer !important;
+        transition: all 0.3s !important;
+        width: 100% !important;
+    }}
+    
+    .stButton > button:hover {{
+        background: #003d82 !important;
+        transform: translateY(-1px) !important;
+    }}
+    '''}
+    
+    /* State chips with theme support */
+    .state-chip {{
+        background: {"rgba(60, 70, 120, 0.4)" if st.session_state.get('dark_theme', False) else "#e7f0f7"} !important;
+        color: {"#c5d0f0" if st.session_state.get('dark_theme', False) else "#0056b3"} !important;
+        padding: 0.25rem 0.75rem !important;
+        border-radius: 20px !important;
+        font-size: 0.85rem !important;
+        margin: 0.25rem !important;
+        display: inline-block !important;
+        transition: all 0.3s !important;
+    }}
+    
+    /* Page navigation with theme support */
+    .page-navigation {{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2rem 0;
         padding: 1rem;
+        background: {"rgba(30, 35, 48, 0.8)" if st.session_state.get('dark_theme', False) else "white"};
         border-radius: 8px;
         box-shadow: {"0 4px 20px rgba(0, 0, 0, 0.4)" if st.session_state.get('dark_theme', False) else "0 2px 10px rgba(0, 0, 0, 0.05)"};
         border: 1px solid {"rgba(255, 255, 255, 0.1)" if st.session_state.get('dark_theme', False) else "#eee"};
     }}
     
     .filters-summary {{
-        color: {"#ffffff" if st.session_state.get('dark_theme', False) else "#0056b3"};
+        color: {"#c5cde8" if st.session_state.get('dark_theme', False) else "#0056b3"};
         font-weight: 500;
+    }}
+    
+    .success-message {{
+        background: {"rgba(30, 40, 60, 0.8)" if st.session_state.get('dark_theme', False) else "rgba(240, 248, 255, 0.8)"};
+        color: {"#e9e9e9" if st.session_state.get('dark_theme', False) else "#0056b3"};
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid {"rgba(255, 255, 255, 0.1)" if st.session_state.get('dark_theme', False) else "#eee"};
     }}
     
     /* Sidebar styling if enabled */
@@ -400,6 +363,13 @@ if 'last_generation_params' not in st.session_state:
 if 'generated_charts' not in st.session_state:
     st.session_state.generated_charts = None
 
+# Initialize theme state
+if 'dark_theme' not in st.session_state:
+    st.session_state.dark_theme = False
+
+# Apply theme class to the entire app
+theme_class = "dark-theme" if st.session_state.dark_theme else ""
+
 # Theme toggle functionality using sidebar (hidden but functional)
 with st.sidebar:
     if st.button(f"{'☀️ Light Mode' if st.session_state.dark_theme else '🌙 Dark Mode'}", key="theme_toggle", help="Toggle theme"):
@@ -420,16 +390,23 @@ with st.sidebar:
         
         st.rerun()
 
-# CSS to position the theme toggle button and hide sidebar
+# Global theme change handler - regenerate charts if theme changed and we have data
+if (st.session_state.get('force_chart_regeneration', False) and 
+    st.session_state.get('last_generation_params') and 
+    st.session_state.current_page == 'visualizations'):
+    # This will be handled in the visualizations page section
+    pass
+
+# CSS to position the theme toggle button below the header
 st.markdown("""
 <style>
 /* Hide the sidebar completely */
-.css-1d391kg, [data-testid="stSidebar"] {{
+.css-1d391kg, [data-testid="stSidebar"] {
     display: none !important;
-}}
+}
 
 /* Position the theme toggle button from sidebar absolutely */
-[data-testid="stSidebar"] .stButton > button {{
+[data-testid="stSidebar"] .stButton > button {
     position: fixed !important;
     top: 110px !important;
     right: 24px !important;
@@ -448,32 +425,43 @@ st.markdown("""
     width: auto !important;
     white-space: nowrap !important;
     display: block !important;
-}}
+}
 
-[data-testid="stSidebar"] .stButton > button:hover {{
+[data-testid="stSidebar"] .stButton > button:hover {
     background: rgba(255, 255, 255, 0.25) !important;
     transform: translateY(-1px) !important;
-}}
+}
 
 /* Make sidebar theme toggle button visible even though sidebar is hidden */
-[data-testid="stSidebar"] .stButton {{
+[data-testid="stSidebar"] .stButton {
     position: fixed !important;
     top: 110px !important;
     right: 24px !important;
     z-index: 1001 !important;
     display: block !important;
-}}
+}
 </style>
 """, unsafe_allow_html=True)
 
 # Header with sticky positioning
-theme_class = "dark-theme" if st.session_state.dark_theme else ""
 st.markdown(f"""
 <div class="{theme_class}">
 <div class="main-header">
     <h1>ASRS Runway Incursion Data Visualization</h1>
 </div>
 </div>
+
+<script>
+// Apply theme to Streamlit app container
+document.addEventListener('DOMContentLoaded', function() {{
+    const app = document.querySelector('.stApp');
+    if (app && "{theme_class}" === "dark-theme") {{
+        app.classList.add('dark-theme');
+    }} else if (app) {{
+        app.classList.remove('dark-theme');
+    }}
+}});
+</script>
 """, unsafe_allow_html=True)
 
 # Data loading function
@@ -635,13 +623,11 @@ if st.session_state.current_page == 'filters':
                 selected_states = [item.split(' ', 1)[1] for item in selected_display]
                 
                 if selected_states:
-                    # Display selected locations in a readable format
-                    if len(selected_states) <= 10:
-                        states_display = ", ".join(selected_states)
-                        st.markdown(f"**Selected:** {states_display}")
-                    else:
-                        states_display = ", ".join(selected_states[:10])
-                        st.markdown(f"**Selected:** {states_display} (+{len(selected_states)-10} more)")
+                    # Display selected locations as chips
+                    chips_html = "".join([f'<span class="state-chip">{state}</span>' for state in selected_states[:10]])
+                    if len(selected_states) > 10:
+                        chips_html += f'<span class="state-chip">+{len(selected_states)-10} more</span>'
+                    st.markdown(f"**Selected:** {chips_html}", unsafe_allow_html=True)
                 else:
                     st.warning("⚠️ No locations selected - this will result in no data")
             else:
@@ -733,7 +719,7 @@ if st.session_state.current_page == 'filters':
                             # Apply dark mode styling if enabled
                             dark_mode = st.session_state.get('dark_theme', False)
                             if dark_mode:
-                                text_color = '#ffffff'
+                                text_color = '#e9e9e9'
                                 grid_color = (1, 1, 1, 0.2)  # RGBA for grid lines
                                 bg_color = (0, 0, 0, 0)  # Transparent background
                                 ax_bg_color = (0, 0, 0, 0)  # Transparent axes background
@@ -741,7 +727,7 @@ if st.session_state.current_page == 'filters':
                                 text_color = 'black'
                                 grid_color = '#dddddd'
                                 bg_color = 'white'
-                                ax_bg_color = 'white'
+                                ax_bg_color = '#f8f8f8'
                             
                             # Get color map from original function
                             color_map = vh.get_cf_color_map(contributing_factors_dict, dark_mode=dark_mode)
@@ -831,7 +817,7 @@ if st.session_state.current_page == 'filters':
                                 text_color = 'black'
                                 grid_color = '#dddddd'
                                 bg_color = 'white'
-                                ax_bg_color = 'white'
+                                ax_bg_color = '#f8f8f8'
                             
                             # Set larger font sizes exactly like original
                             plt.rcParams.update({
@@ -1022,7 +1008,7 @@ elif st.session_state.current_page == 'visualizations':
                         text_color = 'black'
                         grid_color = '#dddddd'
                         bg_color = 'white'
-                        ax_bg_color = 'white'
+                        ax_bg_color = '#f8f8f8'
                     
                     color_map = vh.get_cf_color_map(contributing_factors_dict, dark_mode=dark_mode)
                     
@@ -1117,14 +1103,10 @@ elif st.session_state.current_page == 'visualizations':
                     'contributing_factors': fig1,
                     'human_factors': fig2,
                     'theme_when_generated': current_theme,
-                    'summary': {
-                        'date_range': date_range,
-                        'total_records': len(filtered_df),
-                        'states_count': len(params['selected_states']) if params['enable_state_filter'] and params['selected_states'] else None,
-                        'contributing_factors_count': len(contributing_factors_dict) if contributing_factors_dict else 0,
-                        'human_factors_count': human_factors_count
-                    }
+                    'summary': params  # Keep existing summary
                 }
+                
+                st.success("✅ Charts updated for current theme!")
                 
             except Exception as e:
                 st.error(f"❌ Error updating charts: {str(e)}")
@@ -1132,6 +1114,9 @@ elif st.session_state.current_page == 'visualizations':
     # Display visualizations
     if st.session_state.generated_charts:
         charts = st.session_state.generated_charts
+        
+        st.markdown('<div class="success-message">✅ Visualizations generated successfully!</div>', 
+                  unsafe_allow_html=True)
         
         # Summary info
         summary = charts['summary']
